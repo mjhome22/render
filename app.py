@@ -4,10 +4,6 @@ import os
 
 app = Flask(__name__)
 
-# Chave secreta do gateway (NÃO compartilhe publicamente)
-GATEWAY_API_KEY = "sk_pTtX4zeVNxsjSn8EvrUCF912TmfEBVYoaPZoKmr5u_gTxhZY"
-GATEWAY_ENDPOINT = "https://api.asaas.com/v3/payments"  # ajuste conforme o gateway real
-
 HTML_FORM = '''
 <!DOCTYPE html>
 <html>
@@ -23,14 +19,32 @@ HTML_FORM = '''
         <label>Email:</label><br>
         <input type="email" name="email"><br>
 
-        <label>CPF/CNPJ:</label><br>
-        <input type="text" name="taxId"><br>
+        <label>Telefone (somente números):</label><br>
+        <input type="text" name="phone"><br>
+
+        <label>CPF (somente números):</label><br>
+        <input type="text" name="cpf"><br>
 
         <label>Valor (R$):</label><br>
         <input type="number" name="amount" step="0.01"><br>
 
-        <label>Descrição do Produto:</label><br>
-        <input type="text" name="description"><br><br>
+        <label>Rua:</label><br>
+        <input type="text" name="street"><br>
+
+        <label>Número:</label><br>
+        <input type="text" name="streetNumber"><br>
+
+        <label>Bairro:</label><br>
+        <input type="text" name="neighborhood"><br>
+
+        <label>Cidade:</label><br>
+        <input type="text" name="city"><br>
+
+        <label>Estado (UF):</label><br>
+        <input type="text" name="state"><br>
+
+        <label>CEP:</label><br>
+        <input type="text" name="zipCode"><br><br>
 
         <input type="submit" value="Gerar PIX">
     </form>
@@ -39,49 +53,63 @@ HTML_FORM = '''
 '''
 
 @app.route("/", methods=["GET"])
-def form():
+def home():
     return render_template_string(HTML_FORM)
 
 @app.route("/gerar-pix", methods=["POST"])
 def gerar_pix():
-    name = request.form.get("name")
-    email = request.form.get("email")
-    taxId = request.form.get("taxId")
-    amount = float(request.form.get("amount")) * 100  # convertendo para centavos
-    description = request.form.get("description")
-
+    data = request.form
     payload = {
-        "billingType": "PIX",
-        "customer": {
-            "name": name,
-            "email": email,
-            "cpfCnpj": taxId
+        "amount": int(float(data.get("amount")) * 100),
+        "paymentMethod": "pix",
+        "pix": {"expiresInDays": 1},
+        "items": [{
+            "title": "dubai pedidos",
+            "unitPrice": int(float(data.get("amount")) * 100),
+            "quantity": 1,
+            "tangible": True
+        }],
+        "shipping": {
+            "address": {
+                "street": data.get("street"),
+                "streetNumber": data.get("streetNumber"),
+                "neighborhood": data.get("neighborhood"),
+                "city": data.get("city"),
+                "state": data.get("state"),
+                "zipCode": data.get("zipCode"),
+                "country": "BR"
+            },
+            "fee": 0
         },
-        "value": amount / 100,
-        "description": description,
-        "dueDate": "2025-12-31"
+        "customer": {
+            "name": data.get("name"),
+            "email": data.get("email"),
+            "phone": data.get("phone"),
+            "document": {
+                "type": "cpf",
+                "number": data.get("cpf")
+            }
+        }
     }
 
     headers = {
-        "Content-Type": "application/json",
-        "access_token": GATEWAY_API_KEY
+        "accept": "application/json",
+        "authorization": "Basic cGtfSlhBU3JZMlJMV254TVQtNDJ2Ump2bWZMcXZyUVFmZWphSUFPd3NxekwtbnBxa0FNOnNrX3BUdFg0emVWTnhzalNuOEV2clVDRjkxMlRtZkVCVllvYVBab0ttcjV1X2dUeGhaWQ==",
+        "content-type": "application/json"
     }
 
-    try:
-        response = requests.post(GATEWAY_ENDPOINT, json=payload, headers=headers)
-        response.raise_for_status()
+    response = requests.post("https://api.paynuxpayments.com.br/v1/transactions", json=payload, headers=headers)
+    if response.ok:
         result = response.json()
-
         return jsonify({
             "status": "sucesso",
-            "valor": result.get("value"),
-            "copia_cola": result.get("pixCopyPaste"),
-            "qr_code": result.get("invoiceUrl")
+            "valor": result.get("amount") / 100,
+            "copia_cola": result.get("pix", {}).get("qrcode"),
+            "dados_completos": result
         })
+    else:
+        return jsonify({"status": "erro", "detalhes": response.text}), 400
 
-    except Exception as e:
-        return jsonify({"status": "erro", "detalhes": str(e)}), 400
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port)
+    app.run(host="0.0.0.0", port=port)
