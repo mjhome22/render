@@ -26,7 +26,7 @@ HTML_FORM = '''
         <input type="text" name="cpf" required><br>
 
         <label>Valor (R$):</label><br>
-        <input type="text" name="amount" placeholder="Ex: 100.50" required><br>
+        <input type="text" name="amount" placeholder="Ex: 999.99" required><br>
 
         <label>Rua:</label><br>
         <input type="text" name="street" required><br>
@@ -88,7 +88,7 @@ def gerar_pix():
     data = request.form
     amount_str = data.get("amount").replace(",", ".")
     amount_float = float(amount_str)
-    amount_cents = int(amount_float * 100)
+    amount_cents = int(round(amount_float * 100))
 
     payload = {
         "amount": amount_cents,
@@ -133,7 +133,7 @@ def gerar_pix():
     if response.ok:
         result = response.json()
         copia_cola = result.get("pix", {}).get("qrcode")
-        valor = result.get("amount") / 100
+        valor = "{:.2f}".format(result.get("amount") / 100)
         return render_template_string(HTML_RESULT, copia_cola=copia_cola, valor=valor)
     else:
         return jsonify({"status": "erro", "detalhes": response.text}), 400
