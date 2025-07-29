@@ -125,7 +125,7 @@ def gerar_pix():
 
     headers = {
         "accept": "application/json",
-        "authorization": "Basic cGtfWW91alZzQlE3Z2lpbkZSOFcxS08xeTEtZEFsZThidnJGNzhQSkRhbVBzOXY0VjNDOnNrX2JObjZOLUVrQnRWWDJybGFoQTF1cEN5c28wLUlaTlFVV0NZbmdXQlNLZVpQMEQwLQ==",
+        "authorization": "Basic cGtfdGFqdkdkay1qNVhJdkw5N3ZFNDdielQxUDEzTEV5Rlp4SFNfa2FTUnlWTWY3OXN0OnNrX21LcS1lYnQ1UDI5eWE4aldBbEZ0Yl9CUVJjbVhLdThxaUQyd1lvLWdRYUpzbFVXNw==",
         "content-type": "application/json"
     }
 
