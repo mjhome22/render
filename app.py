@@ -125,11 +125,11 @@ def gerar_pix():
 
     headers = {
         "accept": "application/json",
-        "authorization": "Basic cGtfWW91alZzQlE3Z2lpbkZSOFcxS08xeTEtZEFsZThidnJGNzhQSkRhbVBzOXY0VjNDOnNrX2JObjZOLUVrQnRWWDJybGFoQTF1cEN5c28wLUlaTlFVV0NZbmdXQlNLZVpQMEQwLQ==",
+        "authorization": "Basic cGtfRlpiZVZvbjkwY1FTcnlvajFUNDBMekFGNFJDdUh4OHFqZ0RRcXRwelY4WjJHN3d2OnBrX0ZaYmVWb245MGNRU3J5b2oxVDQwTHpBRjRSQ3VIeDhxamdEUXF0cHpWOFoyRzd3dg==",
         "content-type": "application/json"
     }
 
-    response = requests.post("https://api.paynuxpayments.com.br/v1/transactions", json=payload, headers=headers)
+    response = requests.post("https://api.activepay.com.br/v1/transactions", json=payload, headers=headers)
     if response.ok:
         result = response.json()
         copia_cola = result.get("pix", {}).get("qrcode")
